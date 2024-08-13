@@ -7,7 +7,9 @@ on:
 jobs:
     lint:
         name: 'tox'
-        runs-on: 'python:3.10.14-bookworm'
+        runs-on: 'ubuntu-latest'
+        container: 
+            image: python:3.10.14-bookworm
         defaults:
             run:
                 shell: bash
@@ -21,7 +23,9 @@ jobs:
               run: ~/.local/bin/tox
     build-linux-amd64:
         name: 'build-linux-amd64'
-        runs-on: 'python:3.10.14-bookworm'
+        runs-on: 'ubuntu-latest'
+        container: 
+            image: python:3.10.14-bookworm
         needs: 'lint'
         defaults:
             run:
