@@ -13,7 +13,6 @@ jobs:
         defaults:
             run:
                 shell: bash
-                # working-directory: staking_deposit
         steps:
             - name: checkout
               uses: actions/checkout@v3
@@ -30,7 +29,6 @@ jobs:
         defaults:
             run:
                 shell: bash
-                # working-directory: staking_deposit
         steps:
             - name: checkout
               uses: actions/checkout@v3
