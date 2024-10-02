@@ -44,7 +44,7 @@ jobs:
         with:
           repo_token: ${{ secrets.GITHUB_TOKEN }}
           file: /tmp/artifacts/staking_deposit-cli-linux-amd64.tar.gz
-          asset_name: staking_deposit-cli-linux-amd64
+          asset_name: staking_deposit-cli-linux-amd64.tar.gz
           tag: ${{ github.ref }}
           overwrite: true
           body: "v2.3.0 with lachain config"
