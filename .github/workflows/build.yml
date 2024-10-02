@@ -1,72 +1,50 @@
 name: build
 on:
-    push:
-      branches:
-        - v2.3.0-pre-gen_val_root
+  push:
+    branches:
+      - v2.3.0-pre-gen_val_root
 
 jobs:
-    lint:
-        name: 'tox'
-        runs-on: 'ubuntu-latest'
-        container: 
-            image: python:3.10.14-bookworm
-        defaults:
-            run:
-                shell: bash
-        steps:
-            - name: checkout
-              uses: actions/checkout@v3
-            - name: install dependencies
-              run: pip install --user tox
-            - name: run tox
-              run: ~/.local/bin/tox
-    build-linux-amd64:
-        name: 'build-linux-amd64'
-        runs-on: 'ubuntu-latest'
-        container: 
-            image: python:3.10.14-bookworm
-        needs: 'lint'
-        defaults:
-            run:
-                shell: bash
-        steps:
-            - name: checkout
-              uses: actions/checkout@v3
-            - name: Install building requirements on Linux
-              run: |
-                pip install -r ./build_configs/linux/requirements.txt;
-            - name: Build with build.spec
-              run: |
-                    export BUILD_FILE_NAME=staking_deposit-cli-linux-amd64;
-                    mkdir ${BUILD_FILE_NAME};
-                    pyinstaller --distpath ./${BUILD_FILE_NAME} ./build_configs/linux/build.spec;
-            - name: Test executable binaries
-              run: |
-                    export BUILD_FILE_NAME=staking_deposit-cli-linux-amd64;
-                    export TEST_FOLDER_NAME=TMP_TEST_FOLDER
-                    mkdir ${TEST_FOLDER_NAME}
-                    cp -r ${BUILD_FILE_NAME} ${TEST_FOLDER_NAME}
-                    cp test_binary_script.py ${TEST_FOLDER_NAME}
-                    cd ${TEST_FOLDER_NAME}
-                    python test_binary_script.py ./${BUILD_FILE_NAME};
-            - name: Compress the file
-              run: |
-                    export BUILD_FILE_NAME=staking_deposit-cli-linux-amd64;
-                    tar -zcvf ${BUILD_FILE_NAME}.tar.gz ./${BUILD_FILE_NAME};
-                    mkdir /tmp/artifacts;
-                    cp ${BUILD_FILE_NAME}.tar.gz /tmp/artifacts;
-                    sha256sum ${BUILD_FILE_NAME}.tar.gz | head -c 64 > /tmp/artifacts/${BUILD_FILE_NAME}.sha256
-            - uses: actions/upload-artifact@v4
-              with:
-                  name: staking-deposit-cli
-                  path: /tmp/artifacts/
-                  if-no-files-found: 'error'
-            - name: Upload binaries to release
-              uses: svenstaro/upload-release-action@v2
-              with:
-                repo_token: ${{ secrets.GITHUB_TOKEN }}
-                file: /tmp/artifacts/staking_deposit-cli-linux-amd64.tar.gz
-                asset_name: staking_deposit-cli-linux-amd64
-                tag: ${{ github.ref }}
-                overwrite: true
-                body: "v2.3.0 with lachain config"
+  build-linux-amd64:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+
+      - name: Set up Python
+        uses: actions/setup-python@v2
+        with:
+          python-version: 3.8
+
+      - name: Run linter
+        run: make venv_lint
+
+      - name: Build for Linux
+        run: make build_linux
+
+      - name: Run tests
+        run: make venv_test
+
+      - name: Compress the file
+        run: |
+              export BUILD_FILE_NAME=staking_deposit-cli-linux-amd64;
+              mv ./dist/deposit ./${BUILD_FILE_NAME};
+              tar -zcvf ${BUILD_FILE_NAME}.tar.gz ${BUILD_FILE_NAME};
+              mkdir /tmp/artifacts;
+              cp ${BUILD_FILE_NAME}.tar.gz /tmp/artifacts;
+              sha256sum ${BUILD_FILE_NAME}.tar.gz | head -c 64 > /tmp/artifacts/${BUILD_FILE_NAME}.sha256
+      - uses: actions/upload-artifact@v4
+        with:
+            name: staking-deposit-cli
+            path: /tmp/artifacts/
+            if-no-files-found: 'error'
+
+      - name: Upload binaries to release
+        uses: svenstaro/upload-release-action@v2
+        with:
+          repo_token: ${{ secrets.GITHUB_TOKEN }}
+          file: /tmp/artifacts/staking_deposit-cli-linux-amd64.tar.gz
+          asset_name: staking_deposit-cli-linux-amd64
+          tag: ${{ github.ref }}
+          overwrite: true
+          body: "v2.3.0 with lachain config"
