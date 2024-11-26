@@ -48,4 +48,4 @@ jobs:
           asset_name: staking_deposit-cli-linux-amd64.tar.gz
           tag: ${{ github.ref }}
           overwrite: true
-          body: "v2.3.0 with lachain config"
+          body: "v2.3.1 with lachain config"
