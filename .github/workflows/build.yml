@@ -3,6 +3,7 @@ on:
   push:
     branches:
       - v2.3.0-pre-gen_val_root
+      - v2.3.1
 
 jobs:
   build-linux-amd64:
